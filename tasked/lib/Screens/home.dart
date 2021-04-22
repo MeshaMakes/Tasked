@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sad_lib/StorageClass/StorageClass.dart';
 import 'package:tasked/Utils/storageManager.dart';
 import 'package:tasked/Utils/todoModel.dart';
 import '../Utils/Colors.dart' as colors;
@@ -15,73 +16,26 @@ class _HomeController extends State<Home> {
   Widget build(BuildContext context) => _HomeView(this);
   //ACTUAL CODE
   Size _size;
+  bool _isCompleted;
 
+  Todo todo = Todo();
+  List<String> _todos = [];
   TextEditingController _todoController;
-  List<Todo> _todos = [];
-
-  String key = "${DateTime.now().toString()}/user";
-
-  void loadCache() {
-
-    // Map<String, dynamic> tempMap = Map();
-    //
-    // if(html.window.localStorage.containsKey(key)) {
-    //   print(html.window.localStorage[key].toString());
-    //   tempMap = json.decode(html.window.localStorage[key].toString());
-    //
-    //   if(tempMap.containsKey("todos")) {
-    //     setState(() {
-    //       _todos = tempMap["todos"];
-    //     });
-    //   }
-    // }
-
-    StorageManager.readData(key).then((value) {
-      if(value != null) {
-        setState(() {
-          //_todos = value;
-          print("Loaded");
-        });
-      }
-    });
-
-    // html.window.localStorage['key'] = key;
-    // if(key != null && !html.window.localStorage['key'].contains(key)) {
-    //   html.window.localStorage.putIfAbsent(key, () => key);
-    //   json.decode(html.window.localStorage[key].toString());
-    //
-    // }
-
-    // setState(() {
-    //   _todos = StorageManager.readData(key) as List<String>;
-    //   print("Loaded");
-    // });
-  }
 
   void setTodo(String str) {
     if(str != null && str.isNotEmpty) {
       setState(() {
-        //_todos.add(str);
-        Todo(
-          title: str,
-          completed: false,
-        );
+        _todos.add(str);
         _todoController.clear();
-
-        StorageManager.saveData(key, _todos);
-
-        // Map<String, dynamic> tempMap = Map();
-        // tempMap.putIfAbsent(key, () => {});
-        // if(!html.window.localStorage.containsKey(key)) {
-        //   html.window.localStorage.putIfAbsent(key, () => "");
-        // } else {
-        //   tempMap[key] = json.decode(html.window.localStorage[key]);
-        // }
-        // tempMap[key].update("todos", (value) => _todos, ifAbsent: () => _todos);
-        // html.window.localStorage.update(key, (value) => json.encode(tempMap[key]));
 
       });
     }
+  }
+
+  void completeTodo(int i) {
+    setState(() {
+      _isCompleted = !_isCompleted;
+    });
   }
 
   void deleteTodo(int i) {
@@ -93,14 +47,8 @@ class _HomeController extends State<Home> {
   @override
   void initState() {
     _todoController = TextEditingController();
+    _isCompleted = false;
     super.initState();
-    // if(html.document.cookie.indexOf('mycookie')==-1) {
-    //   html.document.cookie = 'mycookie=1';
-    // } else {
-    //   html.window.alert('you refereshed');
-    //   loadCache();
-    // }
-    loadCache();
   }
 
   @override
@@ -258,11 +206,12 @@ class _HomeView extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                "state._todos[i]",
+                state._todos[i],
                 style: TextStyle(
                   color: colors.white,
                   fontSize: 15.0,
                   fontWeight: FontWeight.w500,
+                  decoration: state._isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
                 ),
               ),
             ),
@@ -274,6 +223,21 @@ class _HomeView extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.all(5.0),
                     child: Icon(Icons.done, size: 20.0, color: colors.green,),
+                  ),
+                ),
+              ),
+              onTap: () {
+                state.completeTodo(i);
+              },
+            ),
+            InkWell(
+              radius: 0.0,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: ClipOval(
+                  child: Padding(
+                    padding: EdgeInsets.all(5.0),
+                    child: Icon(Icons.close, size: 20.0, color: colors.primary,),
                   ),
                 ),
               ),

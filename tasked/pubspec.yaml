@@ -24,6 +24,10 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.0.5
+  sad_lib:
+    git:
+      url: git://github.com/ArcherDiaz/SAD.git
+      path: sad_lib
 
 
   # The following adds the Cupertino Icons font to your application.
