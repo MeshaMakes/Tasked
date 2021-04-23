@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sad_lib/StorageClass/StorageClass.dart';
-import 'package:tasked/Utils/storageManager.dart';
-import 'package:tasked/Utils/todoModel.dart';
+import 'package:sad_lib/DialogClass.dart';
+import 'package:tasked/Utils/TodoItem.dart';
 import '../Utils/Colors.dart' as colors;
-import 'dart:html' as html;
-import 'dart:convert';
+import 'dart:html';
 
 class Home extends StatefulWidget {
   @override
@@ -17,8 +15,8 @@ class _HomeController extends State<Home> {
   //ACTUAL CODE
   Size _size;
   bool _isCompleted;
+  DialogClass _dialog;
 
-  Todo todo = Todo();
   List<String> _todos = [];
   TextEditingController _todoController;
 
@@ -27,7 +25,6 @@ class _HomeController extends State<Home> {
       setState(() {
         _todos.add(str);
         _todoController.clear();
-
       });
     }
   }
@@ -36,11 +33,26 @@ class _HomeController extends State<Home> {
     setState(() {
       _isCompleted = !_isCompleted;
     });
+    _dialog.assureDialog(context, message: "Are you sure you want to mark '${_todos[i].toString()}' as done?", dismissible: false, positive: "Yes",).then((flag) {
+      if(flag) {
+        setState(() {
+          _todos.removeAt(i);
+        });
+      } else {
+        Navigator.of(context).pop(false);
+      }
+    });
   }
 
   void deleteTodo(int i) {
-    setState(() {
-      _todos.removeAt(i);
+    _dialog.assureDialog(context, message: "Are you sure you want to delete '${_todos[i].toString()}'?", dismissible: false, positive: "Yes", negative: "No").then((flag) {
+      if(flag) {
+        setState(() {
+          _todos.removeAt(i);
+        });
+      } else {
+        Navigator.of(context).pop(false);
+      }
     });
   }
 
@@ -48,7 +60,13 @@ class _HomeController extends State<Home> {
   void initState() {
     _todoController = TextEditingController();
     _isCompleted = false;
+    _dialog = DialogClass(background: colors.bg, buttonColor: colors.primary, buttonTextColor: colors.white, textColor: colors.white);
     super.initState();
+    if(window.document.cookie.indexOf('mycookie') == -1) {
+      window.document.cookie = 'mycookie=1';
+    } else {
+      window.alert("Please note: Todos do not save when page is reloaded.");
+    }
   }
 
   @override
@@ -163,7 +181,13 @@ class _HomeView extends StatelessWidget {
                                   child: child,
                                 );
                               },
-                              child: _todoItem(i),
+                              child: TodoItem(
+                                todos: state._todos,
+                                isCompleted: state._isCompleted,
+                                i: i,
+                                completeTodo: state.completeTodo,
+                                deleteTodo: state.deleteTodo,
+                              ),
                             ),
                         ],
                       ),
@@ -191,63 +215,5 @@ class _HomeView extends StatelessWidget {
       ),
     );
   }
-
-  Widget _todoItem(int i) {
-    return Card(
-      color: colors.bg,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: colors.darkGrey, width: 2.0),
-        borderRadius: BorderRadius.circular(5.0)
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                state._todos[i],
-                style: TextStyle(
-                  color: colors.white,
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.w500,
-                  decoration: state._isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
-                ),
-              ),
-            ),
-            InkWell(
-              radius: 0.0,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: ClipOval(
-                  child: Padding(
-                    padding: EdgeInsets.all(5.0),
-                    child: Icon(Icons.done, size: 20.0, color: colors.green,),
-                  ),
-                ),
-              ),
-              onTap: () {
-                state.completeTodo(i);
-              },
-            ),
-            InkWell(
-              radius: 0.0,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: ClipOval(
-                  child: Padding(
-                    padding: EdgeInsets.all(5.0),
-                    child: Icon(Icons.close, size: 20.0, color: colors.primary,),
-                  ),
-                ),
-              ),
-              onTap: () {
-                state.deleteTodo(i);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 }

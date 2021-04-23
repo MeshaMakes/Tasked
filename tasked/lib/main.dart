@@ -5,5 +5,6 @@ void main() {
   runApp(MaterialApp(
     home: Home(),
     title: "Tasked",
+    debugShowCheckedModeBanner: false,
   ));
 }
